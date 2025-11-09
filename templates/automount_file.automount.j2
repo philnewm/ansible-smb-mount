@@ -1,0 +1,9 @@
+[Unit]
+Description={{ item.description }}
+
+[Automount]
+Where={{ item.mount }}
+TimeoutIdleSec={{ item.timeout_idle }}
+
+[Install]
+WantedBy={{ item.wantedby }}

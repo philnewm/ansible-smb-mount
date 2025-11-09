@@ -1,11 +1,10 @@
 ---
 
 galaxy_info:
-  role_name: smb-mount
-  namespace: philnewm
-  author: author_name
-  description: ansible-role-template description
-  license: some_license
+  role_name: smb_mount
+  author: philnewm
+  description: Mount smb shares based on systemd mount files on startup
+  license: MIT
   min_ansible_version: "2.1"
   platforms:
     - name: EL

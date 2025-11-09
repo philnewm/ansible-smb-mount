@@ -1,5 +1,46 @@
 ---
 
-state: present
+smb_mount_state: "present"
+smb_mount_hosts_file_path: /etc/hosts
+smb_mount_credentials_file: .smb
+systemd_unit_dir: /etc/systemd/system
+smb_mount_server_host_name: "smb-server"
+smb_mount_server_ip: "192.168.1.100"
+smb_mount_hosts_entry: "{{ smb_mount_server_ip }} {{ smb_mount_server_host_name }}"
+smb_mount_mnt_point: "mnt"
+smb_login: "smb-user"
+smb_password: "smb-password"
+smb_mount_type_default: "cifs"
+smb_mount_options_default: "credentials={{ ansible_env.HOME }}/{{ smb_mount_credentials_file }},rw,uid=1000,gid=1000,iocharset=utf8,_netdev,noserverino,noexec"
+smb_mount_mode_default: "0644"
+smb_mount_wantedby_default: multi-user.target
+smb_mount_targets:
+  - name: "mount_a"
+    mount: "/{{ smb_mount_mnt_point }}/mount_a"
+    share: "//{{ smb_mount_server_host_name }}/share_a"
+    description: "mount share_a share"
+    type: "{{ smb_mount_type_default }}"
+    options: "{{ smb_mount_options_default }}"
+    mode: "{{ smb_mount_mode_default }}"
+    wantedby: "{{ smb_mount_wantedby_default }}"
+    timeout_idle: 60
+  - name: "mount_b"
+    mount: "/{{ smb_mount_mnt_point }}/mount_b"
+    share: "//{{ smb_mount_server_host_name }}/share_b"
+    description: "mount share_b share"
+    type: "/{{ smb_mount_type_default }}"
+    options: "{{ smb_mount_options_default }}"
+    mode: "{{ smb_mount_mode_default }}"
+    wantedby: "{{ smb_mount_wantedby_default }}"
+    timeout_idle: 60
+  - name: "mount_c"
+    mount: "/{{ smb_mount_mnt_point }}/mount_c"
+    share: "//{{ smb_mount_server_host_name }}/share_c"
+    description: "mount share_c share"
+    type: "{{ smb_mount_type_default }}"
+    options: "{{ smb_mount_options_default }}"
+    mode: "{{ smb_mount_mode_default }}"
+    wantedby: "{{ smb_mount_wantedby_default }}"
+    timeout_idle: 60
 
 ...

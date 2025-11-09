@@ -1,5 +1,54 @@
 ---
 
+# INFO ubuntu tends to not reboot correctly first time after removing role
+- name: Unmount volumes
+  become: true
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.systemd_service:
+    name: "{{ smb_mount_mnt_point }}-{{ item.name }}.automount"
+    state: stopped
+    enabled: false
+
+- name: Remove mount files
+  become: true
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.file:
+    path: "{{ systemd_unit_dir }}/{{ smb_mount_mnt_point }}-{{ item.name }}.mount"
+    state: "absent"
+
+- name: Remove automount files
+  become: true
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.file:
+    path: "{{ systemd_unit_dir }}/{{ smb_mount_mnt_point }}-{{ item.name }}.automount"
+    state: "absent"
+
+- name: Reload systemd service
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Remove mount targets
+  become: true
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.file:
+    path: "{{ item.mount }}"
+    state: "absent"
+
+- name: Remove credentials file
+  become: true
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/{{ smb_mount_credentials_file }}"
+    state: "absent"
+
 - name: Remove unused dependencies
   become: true
   ansible.builtin.package:

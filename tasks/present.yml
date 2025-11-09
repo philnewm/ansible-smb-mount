@@ -7,8 +7,74 @@
     name: python-apt-common
     state: present
 
-# INFO This task may be obsolete for your use-case
 - name: Gather package facts
   ansible.builtin.package_facts:
+
+- name: Install required packages
+  become: true
+  when: smb_packages[ansible_os_family] not in ansible_facts.packages
+  ansible.builtin.package:
+    name: "{{ smb_packages[ansible_os_family] }}"
+    state: present
+    update_cache: true
+
+# TODO research kerberus for this kinda logins
+# - name: Write credentials
+#   become: true
+#   when: smb_login
+#   # no_log: true  # TODO reenable for publishing
+#   ansible.builtin.copy:
+#     content: |
+#       username={{ smb_login }}
+#       password={{ smb_password }}
+#     dest: "{{ ansible_env.HOME }}/{{ smb_mount_credentials_file }}"
+#     owner: root
+#     group: root
+#     mode: "0600"
+
+- name: Create mount targets
+  become: true
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.file:
+    path: "{{ item.mount }}"
+    state: directory
+    # INFO on mount username changes until timeout triggers
+    # INFO mode needs to be 775 to pass idepotency check
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Generate mount files
+  become: true
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.template:
+    src: "mount_file.mount.j2"
+    dest: "{{ systemd_unit_dir }}/{{ smb_mount_mnt_point }}-{{ item.name }}.mount"
+    mode: "0644"
+
+- name: Generate automount files
+  become: true
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.template:
+    src: "automount_file.automount.j2"
+    dest: "{{ systemd_unit_dir }}/{{ smb_mount_mnt_point }}-{{ item.name }}.automount"
+    mode: "0644"
+
+- name: Enable auto-mount file
+  become: true
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: "{{ smb_mount_mnt_point }}-{{ item.name }}.automount"
+    state: started
+    enabled: true
 
 ...

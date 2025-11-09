@@ -1,3 +1,92 @@
 ---
 
+- name: Get mnt directories
+  ansible.builtin.command:
+    cmd: "ls /{{ smb_mount_mnt_point }}"
+  register: mnt_result
+  changed_when: false
+
+- name: Test existing mount points
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.assert:
+    that:
+      - item.name in mnt_result.stdout_lines
+    fail_msg: "Failed to find mount point '/mnt/{{ item.name }}'"
+    quiet: true
+
+- name: Get list of service files
+  ansible.builtin.command:
+    cmd: "ls /{{ systemd_unit_dir }}"
+  register: mnt_result
+  changed_when: false
+
+- name: Test existing mount files
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.assert:
+    that:
+      - smb_mount_mnt_point ~ '-' ~ item.name ~ '.mount' in mnt_result.stdout_lines
+    fail_msg: "Failed to find mount file '{{ systemd_unit_dir }}/{{ smb_mount_mnt_point ~ '-' ~ item.name ~ '.mount' in mnt_result.stdout_lines }}'"
+    quiet: true
+
+- name: Test existing automount files
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.assert:
+    that:
+      - smb_mount_mnt_point ~ '-' ~ item.name ~ '.automount' in mnt_result.stdout_lines
+    fail_msg: "Failed to find mount file '{{ systemd_unit_dir }}/{{ smb_mount_mnt_point ~ '-' ~ item.name ~ '.automount' in mnt_result.stdout_lines }}'"
+    quiet: true
+
+# - name: Check systemd automount status
+#   loop: "{{ smb_mount_targets }}"
+#   loop_control:
+#     label: "{{ item.name }}"
+#   ansible.builtin.systemd_service:
+#     name: "{{ smb_mount_mnt_point ~ '-' ~ item.name ~ '.automount' }}"
+#   register: mount_status
+
+# - name: Collect facts about system services
+#   ansible.builtin.mount_facts:
+
+# - name: Show service name
+#   loop: "{{ smb_mount_targets }}"
+#   loop_control:
+#     label: "{{ item.name }}"
+#   ansible.builtin.debug:
+#     msg: "{{ smb_mount_mnt_point ~ '-' ~ item.name ~ '.automount' }}"
+
+- name: Get state of automount unit
+  loop: "{{ smb_mount_targets }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.systemd_service:
+    name: "{{ smb_mount_mnt_point ~ '-' ~ item.name ~ '.automount' }}"
+  register: automount_state
+
+- name: Display systemd output
+  loop: "{{ automount_state.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  ansible.builtin.debug:
+    msg:
+      - "Name: {{ item.item.name }}"
+      - "FileState: {{ item.status.UnitFileState }}"
+      - "ActiveState: {{ item.status.ActiveState }}"
+
+- name: Test mount states
+  loop: "{{ automount_state.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  ansible.builtin.assert:
+    that:
+      - item.status.ActiveState == "active"
+      - item.status.UnitFileState == "enabled"
+    fail_msg: "Failed to verify state of {{ item.item.name }}"
+    quiet: true
+
 ...

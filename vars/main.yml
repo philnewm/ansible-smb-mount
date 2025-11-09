@@ -1,5 +1,10 @@
 ---
 
-ansible_role_template: "Default role name still in use."
+smb_packages:
+  "RedHat": cifs-utils
+  "Debian": cifs-utils
+
+smb_mount_ubuntu_packages:
+  - linux-generic
 
 ...
