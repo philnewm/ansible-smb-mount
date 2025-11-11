@@ -28,7 +28,7 @@ smb_mount_targets:
     mount: "/{{ smb_mount_mnt_point }}/mount_b"
     share: "//{{ smb_mount_server_host_name }}/share_b"
     description: "mount share_b share"
-    type: "/{{ smb_mount_type_default }}"
+    type: "{{ smb_mount_type_default }}"
     options: "{{ smb_mount_options_default }}"
     mode: "{{ smb_mount_mode_default }}"
     wantedby: "{{ smb_mount_wantedby_default }}"
