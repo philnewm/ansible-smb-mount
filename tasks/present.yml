@@ -40,10 +40,6 @@
   ansible.builtin.file:
     path: "{{ item.mount }}"
     state: directory
-    # INFO on mount username changes until timeout triggers
-    # INFO mode needs to be 775 to pass idepotency check
-    owner: "root"
-    group: "root"
     mode: "0755"
 
 - name: Generate mount files
