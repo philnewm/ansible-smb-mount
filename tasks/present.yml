@@ -40,6 +40,8 @@
   ansible.builtin.file:
     path: "{{ item.mount }}"
     state: directory
+    owner: "{{ item.mnt_owner }}"
+    group: "{{ item.mnt_group }}"
     mode: "0755"
 
 - name: Generate mount files
